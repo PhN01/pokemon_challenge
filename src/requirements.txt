@@ -20,4 +20,4 @@ pandas==0.25.2
 flake8==3.8.2
 ipython==7.14.0
 recommonmark==0.6.0
-scikit_learn==0.23.1
+scikit_learn==0.21.3
