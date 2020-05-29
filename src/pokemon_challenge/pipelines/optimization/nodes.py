@@ -115,15 +115,15 @@ def lp_optimization(available_performance: pd.DataFrame, submission_file: pd.Dat
     return submission_file
 
 
-class GeneticPokemons(object):
+class GeneticAlgorithm(object):
     def __init__(
-        self, data, num_lineups, duration=60, opt_metric="result", p_mutation=0.2
+        self, data, num_teams, duration=60, opt_metric="result", p_mutation=0.2
     ):
         self.data = data
-        self.num_lineups = num_lineups
+        self.num_teams = num_teams
         self.duration = duration
         self.n_pokemons = None
-        self.top_150 = []
+        self.top_list = []
         self.all_pokemons = []
         self.opt_metric = opt_metric
         self.p_mutation = p_mutation
@@ -132,51 +132,51 @@ class GeneticPokemons(object):
 
         runtime = time.time() + self.duration
         while time.time() < runtime:
-            self.get_lineups()
-            self.top_150.sort(key=lambda x: x[-1], reverse=True)
+            self.generation()
+            self.top_list.sort(key=lambda x: x[-1], reverse=True)
             # We use 150 as the number here b/c drafkings only allows a maximum of 150 lineups in any one contest
-            self.top_150 = self.top_150[:150]
+            self.top_list = self.top_list[:self.num_teams]
 
-    def get_lineups(self):
+    def generation(self):
 
         # generate 10 new lineups
-        new_lineups = [self.generate_lineup() for _ in range(10)]
+        new_lineups = [self.generate_team() for _ in range(10)]
 
         # sort the lineups by their predicted score
         new_lineups.sort(key=lambda x: x[-1], reverse=True)
 
         # Add the newly created lineups to the top_150 (they will be sorted and bottom ones removed later)
-        self.top_150.extend(new_lineups)
+        self.top_list.extend(new_lineups)
 
         # Mate the top 3 lineups together
-        offspring_1 = self.mate_lineups(new_lineups[0], new_lineups[1])
-        offspring_2 = self.mate_lineups(new_lineups[0], new_lineups[2])
-        offspring_3 = self.mate_lineups(new_lineups[1], new_lineups[2])
+        offspring_1 = self.crossover_and_mutation(new_lineups[0], new_lineups[1])
+        offspring_2 = self.crossover_and_mutation(new_lineups[0], new_lineups[2])
+        offspring_3 = self.crossover_and_mutation(new_lineups[1], new_lineups[2])
 
         # Mate the offspring with a randomly selected lineup from the top_150 and add to top_150
         # Adding this step makes the algorithm more greedy, and produces higher projections, but can be skipped
-        self.top_150.append(
-            self.mate_lineups(
-                offspring_1, self.top_150[random.randint(0, len(self.top_150) - 1)]
+        self.top_list.append(
+            self.crossover_and_mutation(
+                offspring_1, self.top_list[random.randint(0, len(self.top_list) - 1)]
             )
         )
-        self.top_150.append(
-            self.mate_lineups(
-                offspring_2, self.top_150[random.randint(0, len(self.top_150) - 1)]
+        self.top_list.append(
+            self.crossover_and_mutation(
+                offspring_2, self.top_list[random.randint(0, len(self.top_list) - 1)]
             )
         )
-        self.top_150.append(
-            self.mate_lineups(
-                offspring_3, self.top_150[random.randint(0, len(self.top_150) - 1)]
+        self.top_list.append(
+            self.crossover_and_mutation(
+                offspring_3, self.top_list[random.randint(0, len(self.top_list) - 1)]
             )
         )
 
         # Add the original offspring to the top_150
-        self.top_150.append(offspring_1)
-        self.top_150.append(offspring_2)
-        self.top_150.append(offspring_3)
+        self.top_list.append(offspring_1)
+        self.top_list.append(offspring_2)
+        self.top_list.append(offspring_3)
 
-    def mate_lineups(self, lineup1, lineup2):
+    def crossover_and_mutation(self, team_1, team_2):
         """
             Mate takes in two lineups, creates lists of positions from the available lineups
             and adds another random player to each position list. It then randomly selects the required
@@ -184,26 +184,10 @@ class GeneticPokemons(object):
             and returns the valid lineup.
         """
 
-        # Create lists of all available players for each position from the two lineups plus a random player or 2
-
-        # caterpie = [lineup1[0], lineup2[0], self.all_pokemons[random.randint(0, self.n_pokemons - 1)]]
-        # golem = [lineup1[1], lineup2[1], self.all_pokemons[random.randint(0, self.n_pokemons - 1)]]
-        # krabby = [lineup1[2], lineup2[2], self.all_pokemons[random.randint(0, self.n_pokemons - 1)]]
-        # mewtwo = [lineup1[3], lineup2[3], self.all_pokemons[random.randint(0, self.n_pokemons - 1)]]
-        # raichu = [lineup1[4], lineup2[4], self.all_pokemons[random.randint(0, self.n_pokemons - 1)]]
-        # venusaur = [lineup1[5], lineup2[5], self.all_pokemons[random.randint(0, self.n_pokemons - 1)]]
-        #
-        #
-        # # Randomly grab num players from each position to fill out the new mated lineup
-        # def grab_pokemon(pokemons):
-        #     avail_pokemons = copy.deepcopy(pokemons)
-        #     i = random.randint(0, len(avail_pokemons) - 1)
-        #     return avail_pokemons[i]
-        #
         while True:
             # Create the new lineup by selecting players from each position list
             cutoff = int(np.random.choice(np.arange(6), size=1))
-            lineup = lineup1[:cutoff] + lineup2[cutoff:6]
+            team = team_1[:cutoff] + team_2[cutoff:6]
 
             def mutation(pokemon):
                 mutate = np.random.choice(
@@ -214,15 +198,15 @@ class GeneticPokemons(object):
                 else:
                     return self.all_pokemons[random.randint(0, self.n_pokemons - 1)]
 
-            lineup = [mutation(pokemon) for pokemon in lineup]
+            team = [mutation(pokemon) for pokemon in team]
 
             # Check if the lineup is valid (i.e. it satisfies some basic constraints)
-            lineup = self.check_valid(lineup)
+            team = self.check_valid(team)
             # If lineup isn't valid, run mate again
-            if lineup:
-                return lineup
+            if team:
+                return team
 
-    def generate_lineup(self):
+    def generate_team(self):
         """
             Generate a single lineup with the correct amount of positional requirements.
             The lineup is then checked for validity and returned.
@@ -230,16 +214,16 @@ class GeneticPokemons(object):
 
         while True:
             # add the correct number of each position to a lineup
-            lineup = []
+            team = []
             for _ in range(6):
-                lineup.append(self.all_pokemons[random.randint(0, self.n_pokemons - 1)])
+                team.append(self.all_pokemons[random.randint(0, self.n_pokemons - 1)])
 
             # Check if the lineup is valid (i.e. it satisfies some basic constraints)
-            lineup = self.check_valid(lineup)
-            if lineup:
-                return lineup
+            team = self.check_valid(team)
+            if team:
+                return team
 
-    def check_valid(self, lineup):
+    def check_valid(self, team):
 
         # calculate the total projection of the lineup based on player averages
         result_list = []
@@ -249,10 +233,10 @@ class GeneticPokemons(object):
         for i, opponent in enumerate(
             ["caterpie", "golem", "krabby", "mewtwo", "raichu", "venusaur"]
         ):
-            result_list.append(lineup[i][opponent])
-            hppr_list.append(np.maximum(lineup[i][opponent], 0) / lineup[i]["hp"])
-            cost_list.append(lineup[i]["price"])
-            names_list.append(lineup[i]["name"])
+            result_list.append(team[i][opponent])
+            hppr_list.append(np.maximum(team[i][opponent], 0) / team[i]["hp"])
+            cost_list.append(team[i]["price"])
+            names_list.append(team[i]["name"])
         result = np.mean(result_list)
         hppr = np.mean(hppr_list)
         cost = np.sum(cost_list)
@@ -261,10 +245,10 @@ class GeneticPokemons(object):
         if (cost < 3500) and (indiv == 6):
             # add the salary and the projection to the lineup of players and return the lineup
             if self.opt_metric == "result":
-                lineup.extend((cost, hppr, result))
+                team.extend((cost, hppr, result))
             else:
-                lineup.extend((cost, result, hppr))
-            return lineup
+                team.extend((cost, result, hppr))
+            return team
         return False
 
     def prepare_data(self):
@@ -295,24 +279,22 @@ class GeneticPokemons(object):
         self.n_pokemons = len(self.all_pokemons)
 
 
-def ga_optimization(available_performance: pd.DataFrame, submission_file: pd.DataFrame):
+def ga_optimization(available_performance: pd.DataFrame, submission_file: pd.DataFrame, ga_params: dict):
     log = logging.getLogger(__name__)
 
     enemies = ["caterpie", "golem", "krabby", "mewtwo", "raichu", "venusaur"]
 
-    ga_runtime = 6000  # 1h
-    ga_lineups = 150
-
-    ga = GeneticPokemons(
+    ga = GeneticAlgorithm(
         data=available_performance,
-        num_lineups=ga_lineups,
-        duration=ga_runtime,
+        num_teams=ga_params['num_teams'],
+        duration=ga_params['runtime'],
         opt_metric="hppr",
+        p_mutation=ga_params['p_mutation']
     )
     ga.prepare_data()
     ga.run()
 
-    best_lineup = ga.top_150[0]
+    best_lineup = ga.top_list[0]
     final_objective = best_lineup[-1]
     total_cost = best_lineup[-3]
     for i, pokemon in enumerate(best_lineup[:6]):
@@ -325,6 +307,6 @@ def ga_optimization(available_performance: pd.DataFrame, submission_file: pd.Dat
     log.info(f"Average HPPR = {final_objective}")
     log.info(f"Total Cost = {total_cost}")
 
-    log.info(f"Time = {ga_runtime} seconds")
+    log.info(f"Time = {ga_params['runtime']} seconds")
 
     return submission_file

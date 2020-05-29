@@ -61,6 +61,7 @@ def ga_optimization_pipeline(**kwargs):
                 dict(
                     available_performance="available_pokemon_performance",
                     submission_file="submission_template",
+                    ga_params="params:ga_params"
                 ),
                 "submission",
             ),

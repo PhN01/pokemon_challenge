@@ -48,3 +48,8 @@ dnn_m4:
     - 256
     - 256
     - 256
+
+ga_params:
+  runtime: 10
+  num_teams: 150
+  p_mutation: 0.2
