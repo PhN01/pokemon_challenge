@@ -11,6 +11,9 @@ available pokemons that performs optimal against 6 fixed opponent pokemons.
 
 ## 1. Setup
 
+Generally, we assume that `kedro` is installed. If you do not have it installed yet, please follow 
+[these](https://kedro.readthedocs.io/en/stable/02_getting_started/02_install.html) instructions.
+
 To prepare the environment for this project, you need to take the following
 steps:
 1. create a virtual environment ([link](https://docs.python.org/3/library/venv.html)) and activate it.
