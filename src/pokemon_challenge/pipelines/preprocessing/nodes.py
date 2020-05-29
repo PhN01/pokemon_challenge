@@ -425,20 +425,32 @@ def prepare_battles_for_training(battles: pd.DataFrame):
     n_unique_battles = battles.shape[0]
 
     np.random.seed(1234)
-    idc = np.arange(n_unique_battles)
-    shuffled_idc = np.random.permutation(idc)
-
-    train_val_test_split = [0.7, 0.2, 0.1]
-
-    train_split_idx = int(n_unique_battles * train_val_test_split[0])
-    val_split_idx = int(
-        n_unique_battles * (train_val_test_split[0] + train_val_test_split[1])
-    )
+    # idc = np.arange(n_unique_battles)
+    # shuffled_idc = np.random.permutation(idc)
+    #
+    # train_val_test_split = [0.7, 0.2, 0.1]
+    #
+    # train_split_idx = int(n_unique_battles * train_val_test_split[0])
+    # val_split_idx = int(
+    #     n_unique_battles * (train_val_test_split[0] + train_val_test_split[1])
+    # )
 
     log.info("Applying 0.7/0.2/0.1 split into train/val/test sets.")
-    train_battles = battles.iloc[shuffled_idc[:train_split_idx], :]
-    val_battles = battles.iloc[shuffled_idc[train_split_idx:val_split_idx], :]
-    test_battles = battles.iloc[shuffled_idc[val_split_idx:], :]
+    train_battles, val_test_battles = train_test_split(
+        battles,
+        test_size=0.3,
+        random_state=1234,
+        stratify=battles.Battle_MainType
+    )
+    val_battles, test_battles = train_test_split(
+        val_test_battles,
+        test_size=0.34,
+        random_state=1234,
+        stratify=val_test_battles.Battle_MainType
+    )
+    # train_battles = battles.iloc[shuffled_idc[:train_split_idx], :]
+    # val_battles = battles.iloc[shuffled_idc[train_split_idx:val_split_idx], :]
+    # test_battles = battles.iloc[shuffled_idc[val_split_idx:], :]
 
     assert n_unique_battles == len(train_battles) + len(val_battles) + len(test_battles)
 
