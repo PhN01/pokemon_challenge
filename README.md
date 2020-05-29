@@ -85,16 +85,16 @@ kedro run --pipeline {name_of_pipeline}
 ```
 
 For sake of convenience, we have included the pretrained DNN model in `./data/99_non_catalogued/`.
-Therefore, to reproduce our results, `dnn_pipeline` and `eval_dnn_pipeline` do not have to be executed.
+Therefore, to reproduce our results, `dnn_pipeline` does not have to be executed.
 
-Hence, consecutively running `preprocessing_pipeline`, `prediction_pipeline` and `lp_optimization_pipeline` or
-`ga_optimization_pipeline` will produce a submission file in `./data/08_reporting/`.
-In our experiments, linear optimization produced the best results.
+Hence, consecutively running `preprocessing_pipeline`, `prediction_pipeline`, `eval_dnn_pipeline` 
+and `lp_optimization_pipeline` or `ga_optimization_pipeline` will produce a submission file in 
+`./data/08_reporting/`. In our experiments, linear optimization produced the best results.
 
 As an alternative to running the pipelines individually, we have implementation the
-consecutive execution of `preprocessing_pipeline`, `prediction_pipeline` and `lp_optimization_pipeline`
-as the default. Therefore, running the following command in the command line will also produce
-our submission file:
+consecutive execution of `preprocessing_pipeline`, `prediction_pipeline`, `eval_dnn_pipeline` 
+and `lp_optimization_pipeline` as the default. Therefore, running the following command 
+in the command line will also produce our submission file:
 
 ```
 kedro run
