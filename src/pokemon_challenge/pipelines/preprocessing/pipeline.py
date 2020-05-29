@@ -39,16 +39,13 @@ from .nodes import preprocess_available
 from .nodes import prepare_battles_for_training
 
 
-
 def preprocessing_pipeline(**kwargs):
     return Pipeline(
         [
             node(
                 preprocess_battles,
                 dict(
-                    battles="battles",
-                    weakness="weaknesses",
-                    all_pokemon="all_pokemon"
+                    battles="battles", weakness="weaknesses", all_pokemon="all_pokemon"
                 ),
                 "battles_preprocessed",
             ),
@@ -63,7 +60,7 @@ def preprocessing_pipeline(**kwargs):
                     available_pokemon="available_pokemon",
                     grandmaster="submission_template",
                     weakness="weaknesses",
-                    all_pokemon="all_pokemon"
+                    all_pokemon="all_pokemon",
                 ),
                 "available_battles_preprocessed",
             ),

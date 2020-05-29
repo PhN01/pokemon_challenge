@@ -52,6 +52,7 @@ def lp_optimization_pipeline(**kwargs):
         ]
     )
 
+
 def ga_optimization_pipeline(**kwargs):
     return Pipeline(
         [

@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 def preprocess_battles(
-        battles: pd.DataFrame, weakness: pd.DataFrame, all_pokemon: pd.DataFrame
+    battles: pd.DataFrame, weakness: pd.DataFrame, all_pokemon: pd.DataFrame
 ):
 
     log = logging.getLogger(__name__)
@@ -22,15 +22,9 @@ def preprocess_battles(
     log.info("Left joining pokemon types.")
     # get types of pokemon 1 from all_pokemon
     battles = (
-        pd.merge(
-            battles,
-            all_pokemon,
-            left_on="Name_1",
-            right_on="Name",
-            how="left"
-        )
-            .drop(["ID", "Name"], axis=1)
-            .rename(columns={"Type_1": "Type_1_1", "Type_2": "Type_2_1"})
+        pd.merge(battles, all_pokemon, left_on="Name_1", right_on="Name", how="left")
+        .drop(["ID", "Name"], axis=1)
+        .rename(columns={"Type_1": "Type_1_1", "Type_2": "Type_2_1"})
     )
     # get types of pokemon 2 from all_pokemon
     battles = (
@@ -42,13 +36,15 @@ def preprocess_battles(
             how="left",
             suffixes=("", "_2"),
         )
-            .drop(["ID", "Name"], axis=1)
-            .rename(columns={"Type_1": "Type_1_2", "Type_2": "Type_2_2"})
+        .drop(["ID", "Name"], axis=1)
+        .rename(columns={"Type_1": "Type_1_2", "Type_2": "Type_2_2"})
     )
     # create column with the pair of primary types of the opposing pokemons
     # this will be used for stratification when splitting the data into a
     # train and test set
-    battles['Battle_MainType'] = battles.apply(lambda row: f"{row['Type_1_1']}_{row['Type_1_2']}", axis=1)
+    battles["Battle_MainType"] = battles.apply(
+        lambda row: f"{row['Type_1_1']}_{row['Type_1_2']}", axis=1
+    )
 
     log.info("Left joining strength factors according to pokemon types.")
     # remove 'Types' column from weakness matrix and transform to a dataframe
@@ -112,22 +108,21 @@ def preprocess_battles(
     # set to avoid information leakage when training the model
 
     # create helper variables to identify duplicate battles
-    battles['NL_1'] = battles.loc[:, ['Name_1', 'Level_1']].apply(
+    battles["NL_1"] = battles.loc[:, ["Name_1", "Level_1"]].apply(
         lambda row: f"{row['Name_1']}_{row['Level_1']}", axis=1
     )
-    battles['NL_2'] = battles.loc[:, ['Name_2', 'Level_2']].apply(
+    battles["NL_2"] = battles.loc[:, ["Name_2", "Level_2"]].apply(
         lambda row: f"{row['Name_2']}_{row['Level_2']}", axis=1
     )
-    battles['NL_pair_clean'] = battles.loc[:, ['NL_1', 'NL_2']].apply(
+    battles["NL_pair_clean"] = battles.loc[:, ["NL_1", "NL_2"]].apply(
         lambda row: "_".join(sorted(list(row))), axis=1
     )
 
     # identify duplicates
-    battles['duplicate'] = battles.duplicated(subset='NL_pair_clean', keep=False)
+    battles["duplicate"] = battles.duplicated(subset="NL_pair_clean", keep=False)
 
     # now we can remove the helper columns, because they are not needed anymore
-    battles = battles.drop(['NL_1', 'NL_2', 'NL_pair_clean'], axis=1)
-
+    battles = battles.drop(["NL_1", "NL_2", "NL_pair_clean"], axis=1)
 
     log.info("Create one-hot encodings of categorical variables")
 
@@ -137,20 +132,20 @@ def preprocess_battles(
     types = battles.Type_1_1.unique().tolist() + ["NoType"]
 
     type_oh_1 = (
-            pd.get_dummies(battles.loc[:, "Type_1_1"].values.tolist() + types).loc[
+        pd.get_dummies(battles.loc[:, "Type_1_1"].values.tolist() + types).loc[
             : battles.shape[0], types[:-1]
-            ]
-            + pd.get_dummies(battles.loc[:, "Type_2_1"].values.tolist() + types).loc[
-              : battles.shape[0], types[:-1]
-              ]
+        ]
+        + pd.get_dummies(battles.loc[:, "Type_2_1"].values.tolist() + types).loc[
+            : battles.shape[0], types[:-1]
+        ]
     )
     type_oh_2 = (
-            pd.get_dummies(battles.loc[:, "Type_1_2"].values.tolist() + types).loc[
+        pd.get_dummies(battles.loc[:, "Type_1_2"].values.tolist() + types).loc[
             : battles.shape[0], types[:-1]
-            ]
-            + pd.get_dummies(battles.loc[:, "Type_2_2"].values.tolist() + types).loc[
-              : battles.shape[0], types[:-1]
-              ]
+        ]
+        + pd.get_dummies(battles.loc[:, "Type_2_2"].values.tolist() + types).loc[
+            : battles.shape[0], types[:-1]
+        ]
     )
 
     # weather and time
@@ -174,7 +169,10 @@ def preprocess_battles(
 
 
 def preprocess_available(
-        available_pokemon: pd.DataFrame, grandmaster: pd.DataFrame, weakness: pd.DataFrame, all_pokemon: pd.DataFrame
+    available_pokemon: pd.DataFrame,
+    grandmaster: pd.DataFrame,
+    weakness: pd.DataFrame,
+    all_pokemon: pd.DataFrame,
 ):
     log = logging.getLogger(__name__)
 
@@ -186,15 +184,23 @@ def preprocess_available(
     log.info("Left joining pokemon types.")
     # get types of pokemon 1 from all_pokemon
     available_pokemon = (
-        pd.merge(available_pokemon, all_pokemon, left_on="Name_1", right_on="Name", how="left")
-            .drop(["ID", "Name"], axis=1)
-            .rename(columns={"Type_1": "Type_1_1", "Type_2": "Type_2_1"})
+        pd.merge(
+            available_pokemon,
+            all_pokemon,
+            left_on="Name_1",
+            right_on="Name",
+            how="left",
+        )
+        .drop(["ID", "Name"], axis=1)
+        .rename(columns={"Type_1": "Type_1_1", "Type_2": "Type_2_1"})
     )
     # get types of grandmaster pokemons from all_pokemon
     grandmaster = (
-        pd.merge(grandmaster, all_pokemon, left_on="Name_2", right_on="Name", how="left")
-            .drop(["ID", "Name"], axis=1)
-            .rename(columns={"Type_1": "Type_1_2", "Type_2": "Type_2_2"})
+        pd.merge(
+            grandmaster, all_pokemon, left_on="Name_2", right_on="Name", how="left"
+        )
+        .drop(["ID", "Name"], axis=1)
+        .rename(columns={"Type_1": "Type_1_2", "Type_2": "Type_2_2"})
     )
 
     log.info("Prepare battles dataframe.")
@@ -275,20 +281,20 @@ def preprocess_available(
     types = battles.Type_1_1.unique().tolist() + ["NoType"]
 
     type_oh_1 = (
-            pd.get_dummies(battles.loc[:, "Type_1_1"].values.tolist() + types).loc[
+        pd.get_dummies(battles.loc[:, "Type_1_1"].values.tolist() + types).loc[
             : battles.shape[0], types[:-1]
-            ]
-            + pd.get_dummies(battles.loc[:, "Type_2_1"].values.tolist() + types).loc[
-              : battles.shape[0], types[:-1]
-              ]
+        ]
+        + pd.get_dummies(battles.loc[:, "Type_2_1"].values.tolist() + types).loc[
+            : battles.shape[0], types[:-1]
+        ]
     )
     type_oh_2 = (
-            pd.get_dummies(battles.loc[:, "Type_1_2"].values.tolist() + types).loc[
+        pd.get_dummies(battles.loc[:, "Type_1_2"].values.tolist() + types).loc[
             : battles.shape[0], types[:-1]
-            ]
-            + pd.get_dummies(battles.loc[:, "Type_2_2"].values.tolist() + types).loc[
-              : battles.shape[0], types[:-1]
-              ]
+        ]
+        + pd.get_dummies(battles.loc[:, "Type_2_2"].values.tolist() + types).loc[
+            : battles.shape[0], types[:-1]
+        ]
     )
 
     # weather and time
@@ -310,26 +316,94 @@ def preprocess_available(
     battles.Legendary_2 = battles.Legendary_2.astype(int)
 
     # ensure correct selection and ordering of columns according to battles training data
-    battles = battles.loc[:, [
-            'Level_1', 'Price_1', 'HP_1', 'Attack_1', 'Defense_1', 'Sp_Atk_1', 'Sp_Def_1', 'Speed_1', 'Legendary_1',
-            'Level_2', 'Price_2', 'HP_2', 'Attack_2', 'Defense_2', 'Sp_Atk_2', 'Sp_Def_2', 'Speed_2', 'Legendary_2',
-            'strength_11_1', 'strength_11_2', 'strength_12_1', 'strength_12_2', 'strength_21_1',
-            'strength_21_2', 'strength_22_1', 'strength_22_2',
-            'Bug_1', 'Dragon_1', 'Electric_1', 'Fairy_1', 'Fighting_1', 'Fire_1', 'Ghost_1',
-            'Grass_1', 'Ground_1', 'Ice_1', 'Normal_1', 'Poison_1', 'Psychic_1', 'Rock_1', 'Water_1',
-            'Bug_2', 'Dragon_2', 'Electric_2', 'Fairy_2', 'Fighting_2', 'Fire_2', 'Ghost_2',
-            'Grass_2', 'Ground_2', 'Ice_2', 'Normal_2', 'Poison_2', 'Psychic_2', 'Rock_2', 'Water_2',
-            'Night', 'Rain', 'Sunshine', 'Unknown', 'Windy'
-        ]
+    battles = battles.loc[
+        :,
+        [
+            "Level_1",
+            "Price_1",
+            "HP_1",
+            "Attack_1",
+            "Defense_1",
+            "Sp_Atk_1",
+            "Sp_Def_1",
+            "Speed_1",
+            "Legendary_1",
+            "Level_2",
+            "Price_2",
+            "HP_2",
+            "Attack_2",
+            "Defense_2",
+            "Sp_Atk_2",
+            "Sp_Def_2",
+            "Speed_2",
+            "Legendary_2",
+            "strength_11_1",
+            "strength_11_2",
+            "strength_12_1",
+            "strength_12_2",
+            "strength_21_1",
+            "strength_21_2",
+            "strength_22_1",
+            "strength_22_2",
+            "Bug_1",
+            "Dragon_1",
+            "Electric_1",
+            "Fairy_1",
+            "Fighting_1",
+            "Fire_1",
+            "Ghost_1",
+            "Grass_1",
+            "Ground_1",
+            "Ice_1",
+            "Normal_1",
+            "Poison_1",
+            "Psychic_1",
+            "Rock_1",
+            "Water_1",
+            "Bug_2",
+            "Dragon_2",
+            "Electric_2",
+            "Fairy_2",
+            "Fighting_2",
+            "Fire_2",
+            "Ghost_2",
+            "Grass_2",
+            "Ground_2",
+            "Ice_2",
+            "Normal_2",
+            "Poison_2",
+            "Psychic_2",
+            "Rock_2",
+            "Water_2",
+            "Night",
+            "Rain",
+            "Sunshine",
+            "Unknown",
+            "Windy",
+        ],
     ]
 
     # sunshine is not present in grandmaster data, thus column is NaN -> replace by 0
     battles = battles.fillna(0)
 
-    cont_cols = ['Level_1', 'Price_1', 'Attack_1', 'Defense_1', 'Sp_Atk_1', 'Sp_Def_1', 'Speed_1', 'Level_2', 'Price_2',
-                 'Attack_2', 'Defense_2', 'Sp_Atk_2', 'Sp_Def_2', 'Speed_2']
+    cont_cols = [
+        "Level_1",
+        "Price_1",
+        "Attack_1",
+        "Defense_1",
+        "Sp_Atk_1",
+        "Sp_Def_1",
+        "Speed_1",
+        "Level_2",
+        "Price_2",
+        "Attack_2",
+        "Defense_2",
+        "Sp_Atk_2",
+        "Sp_Def_2",
+        "Speed_2",
+    ]
 
-    with open("./data/99_non_catalogued/scaler_model.pkl", 'rb') as f:
+    with open("./data/99_non_catalogued/scaler_model.pkl", "rb") as f:
         fitted_scaler = pickle.load(f)
 
     battles_cont_sc = fitted_scaler.transform(battles[cont_cols])
@@ -338,14 +412,16 @@ def preprocess_available(
     return battles
 
 
-def prepare_battles_for_training(
-        battles: pd.DataFrame
-):
+def prepare_battles_for_training(battles: pd.DataFrame):
     log = logging.getLogger(__name__)
 
-    log.info('Separating dulpicate battles')
-    aside = battles.loc[battles.duplicate, :].copy().drop('duplicate', axis=1)
-    battles = battles.loc[[not dupl for dupl in battles.duplicate], :].reset_index(drop=True).drop('duplicate', axis=1)
+    log.info("Separating dulpicate battles")
+    aside = battles.loc[battles.duplicate, :].copy().drop("duplicate", axis=1)
+    battles = (
+        battles.loc[[not dupl for dupl in battles.duplicate], :]
+        .reset_index(drop=True)
+        .drop("duplicate", axis=1)
+    )
     n_unique_battles = battles.shape[0]
 
     np.random.seed(1234)
@@ -355,7 +431,9 @@ def prepare_battles_for_training(
     train_val_test_split = [0.7, 0.2, 0.1]
 
     train_split_idx = int(n_unique_battles * train_val_test_split[0])
-    val_split_idx = int(n_unique_battles * (train_val_test_split[0] + train_val_test_split[1]))
+    val_split_idx = int(
+        n_unique_battles * (train_val_test_split[0] + train_val_test_split[1])
+    )
 
     log.info("Applying 0.7/0.2/0.1 split into train/val/test sets.")
     train_battles = battles.iloc[shuffled_idc[:train_split_idx], :]
@@ -371,18 +449,38 @@ def prepare_battles_for_training(
     y_test = test_battles.BattleResult.copy()
 
     # drop response from train/test input
-    X_train = train_battles.drop(['BattleResult', 'Name_1', 'Name_2', 'Battle_MainType'], axis=1)
-    X_val = val_battles.drop(['BattleResult', 'Name_1', 'Name_2', 'Battle_MainType'], axis=1)
-    X_test = test_battles.drop(['BattleResult', 'Name_1', 'Name_2', 'Battle_MainType'], axis=1)
+    X_train = train_battles.drop(
+        ["BattleResult", "Name_1", "Name_2", "Battle_MainType"], axis=1
+    )
+    X_val = val_battles.drop(
+        ["BattleResult", "Name_1", "Name_2", "Battle_MainType"], axis=1
+    )
+    X_test = test_battles.drop(
+        ["BattleResult", "Name_1", "Name_2", "Battle_MainType"], axis=1
+    )
 
     log.info("Standardizing continuous variables.")
     scaler = StandardScaler()
-    cont_cols = ['Level_1', 'Price_1', 'Attack_1', 'Defense_1', 'Sp_Atk_1', 'Sp_Def_1', 'Speed_1', 'Level_2', 'Price_2',
-                 'Attack_2', 'Defense_2', 'Sp_Atk_2', 'Sp_Def_2', 'Speed_2']
+    cont_cols = [
+        "Level_1",
+        "Price_1",
+        "Attack_1",
+        "Defense_1",
+        "Sp_Atk_1",
+        "Sp_Def_1",
+        "Speed_1",
+        "Level_2",
+        "Price_2",
+        "Attack_2",
+        "Defense_2",
+        "Sp_Atk_2",
+        "Sp_Def_2",
+        "Speed_2",
+    ]
     X_train_cont = X_train[cont_cols]
     fitted_scaler = scaler.fit(X_train_cont)
 
-    with open("./data/99_non_catalogued/scaler_model.pkl", 'wb') as f:
+    with open("./data/99_non_catalogued/scaler_model.pkl", "wb") as f:
         pickle.dump(fitted_scaler, f)
 
     X_train_cont_sc = fitted_scaler.transform(X_train_cont)
