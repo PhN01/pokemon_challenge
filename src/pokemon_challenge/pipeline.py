@@ -70,7 +70,9 @@ def create_pipelines(**kwargs) -> Dict[str, Pipeline]:
         "dnn_pipeline": fit_dnn_pipeline,
         "eval_dnn_pipeline": eval_dnn_pipeline,
         "prediction_pipeline": prediction_pipeline,
-        "__default__": preprocessing_pipeline
-        + prediction_pipeline
-        + lp_optimization_pipeline,
+        "__default__":
+            preprocessing_pipeline
+            + prediction_pipeline
+            + eval_dnn_pipeline
+            + lp_optimization_pipeline,
     }
