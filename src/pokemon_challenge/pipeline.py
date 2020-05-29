@@ -33,7 +33,6 @@ from typing import Dict
 from kedro.pipeline import Pipeline
 
 
-
 ###########################################################################
 # Here you can find an example pipeline, made of two modular pipelines.
 #
@@ -71,6 +70,7 @@ def create_pipelines(**kwargs) -> Dict[str, Pipeline]:
         "dnn_pipeline": fit_dnn_pipeline,
         "eval_dnn_pipeline": eval_dnn_pipeline,
         "prediction_pipeline": prediction_pipeline,
-        "__default__": preprocessing_pipeline + prediction_pipeline + lp_optimization_pipeline,
+        "__default__": preprocessing_pipeline
+        + prediction_pipeline
+        + lp_optimization_pipeline,
     }
-

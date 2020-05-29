@@ -52,12 +52,13 @@ def fit_dnn_pipeline(**kwargs):
                     X_test="x_test",
                     y_test="y_test",
                     dnn_params="params:dnn_params",
-                    dnn_arch="params:dnn_test"
+                    dnn_arch="params:dnn_test",
                 ),
                 None,
             ),
         ]
     )
+
 
 def eval_dnn_pipeline(**kwargs):
     return Pipeline(
@@ -81,6 +82,7 @@ def eval_dnn_pipeline(**kwargs):
         ]
     )
 
+
 def prediction_pipeline(**kwargs):
     return Pipeline(
         [
@@ -94,7 +96,7 @@ def prediction_pipeline(**kwargs):
                     dnn_arch_3="params:dnn_m3",
                     dnn_arch_4="params:dnn_m4",
                 ),
-                ["available_pokemon_performance","all_predictions"],
+                ["available_pokemon_performance", "all_predictions"],
             ),
         ]
     )
