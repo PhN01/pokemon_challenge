@@ -65,8 +65,8 @@ def create_pipelines(**kwargs) -> Dict[str, Pipeline]:
 
     return {
         "preprocessing_pipeline": preprocessing_pipeline,
-        "lp_optimization": lp_optimization_pipeline,
-        "ga_optimization": ga_optimization_pipeline,
+        "lp_optimization_pipeline": lp_optimization_pipeline,
+        "ga_optimization_pipeline": ga_optimization_pipeline,
         "dnn_pipeline": fit_dnn_pipeline,
         "eval_dnn_pipeline": eval_dnn_pipeline,
         "prediction_pipeline": prediction_pipeline,

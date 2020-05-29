@@ -25,6 +25,7 @@ logs/**
 # custom settings
 !data/99_non_catalogued/**
 data/99_non_catalogued/dnn_evaluation.json
+#!data/08_reporting/Submission.csv/**
 
 
 ##########################
