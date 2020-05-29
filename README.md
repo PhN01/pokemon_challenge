@@ -11,8 +11,18 @@ available pokemons that performs optimal against 6 fixed opponent pokemons.
 
 ## 1. Setup
 
-Generally, we assume that `kedro` is installed. If you do not have it installed yet, please follow 
-[these](https://kedro.readthedocs.io/en/stable/02_getting_started/02_install.html) instructions.
+Generally, we assume that `kedro 0.15.9` is installed. If you do not have it installed yet, 
+please run the following command in the command line: 
+```
+pip install kedro==0.15.9
+```
+If you have a different version of `kedro` installed, please run the following command 
+in the command line: 
+```
+pip install kedro==0.15.9 --upgrade
+```
+For more information on installing `kedro`, please refer to its 
+[documentation](https://kedro.readthedocs.io/en/stable/02_getting_started/02_install.html).
 
 To prepare the environment for this project, you need to take the following
 steps:
