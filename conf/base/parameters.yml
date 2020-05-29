@@ -1,0 +1,50 @@
+
+# Parameters for the example pipeline. Feel free to delete these once you
+# remove the example pipeline from pipeline.py and the example nodes in
+# `src/pipelines/`
+example_test_data_ratio: 0.2
+example_num_train_iter: 10000
+example_learning_rate: 0.01
+
+
+dnn_params:
+  num_epochs: 100
+  early_stopping: 10
+  weight_decay: 0.0
+  learning_date: 1e-3
+
+dnn_m1:
+  output_dir: "./data/99_non_catalogued/dnn_m1"
+  arch:
+    - 512
+    - 512
+    - 512
+    - 512
+    - 512
+
+dnn_m2:
+  output_dir: "./data/99_non_catalogued/dnn_m2"
+  arch:
+    - 512
+    - 512
+    - 512
+    - 512
+    - 512
+    - 512
+    - 512
+
+dnn_m3:
+  output_dir: "./data/99_non_catalogued/dnn_m3"
+  arch:
+    - 512
+    - 512
+    - 512
+    - 512
+
+dnn_m4:
+  output_dir: "./data/99_non_catalogued/dnn_m4"
+  arch:
+    - 256
+    - 256
+    - 256
+    - 256
