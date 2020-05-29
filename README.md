@@ -1,137 +1,93 @@
-# pokemon_challenge
+# Pokemon Hackathon
 
-## Overview
+## 0. Overview
 
-This is your new Kedro project, which was generated using `Kedro 0.15.9` by running:
+This project was created for a pokemon hackathon using kedro ([link](https://kedro.readthedocs.io)).
+Goal of the challenge is
+1. to predict the outcome of a battle between two pokemons of a given level and
+2. using the predictive model to - given a budget limit - build a team of 6 pokemons from a list of 
+available pokemons that performs optimal against 6 fixed opponent pokemons.
 
-```
-kedro new
-```
 
-Take a look at the [documentation](https://kedro.readthedocs.io) to get started.
+## 1. Setup
 
-## Rules and guidelines
-
-In order to get the best out of the template:
- * Please don't remove any lines from the `.gitignore` file provided
- * Make sure your results can be reproduced by following a data engineering convention, e.g. the one we suggest [here](https://kedro.readthedocs.io/en/stable/06_resources/01_faq.html#what-is-data-engineering-convention)
- * Don't commit any data to your repository
- * Don't commit any credentials or local configuration to your repository
- * Keep all credentials or local configuration in `conf/local/`
-
-## Installing dependencies
-
-Dependencies should be declared in `src/requirements.txt` for pip installation and `src/environment.yml` for conda installation.
-
-To install them, run:
+To prepare the environment for this project, you need to take the following
+steps:
+1. create a virtual environment ([link](https://docs.python.org/3/library/venv.html)) and activate it.
+2. clone this repository and navigate to its root directory
+3. run the following command in the command line to install all requirements
 
 ```
 kedro install
 ```
+## 2. High-level Approach
 
-## Running Kedro
+Our approach generally consists of the following steps:
 
-You can run your Kedro project with:
+First, we preprocessed the available training data. Second, we trained multiple deep neural networks (DNN)
+for predicting the outcome of the battle between two pokemons. As our final prediction, we used an
+ensemble of the neural networks.
+Using the trained neural network, we predicted the performance of each available pokemon against the
+opponent pokemons. Using these predictions, we tested different approaches (integer programming,
+genetic algorithms) for finding an optimal team of pokemons given a budget constraint.
+
+We implemented our approach as `kedro` pipelines which, we will outline in the next section.
+
+## 3. Available Pipelines
+
+To solve the task of the challenge, we implemented the following modular pipelines:
+
+### 3.1. `preprocessing_pipeline`
+
+The preprocessing pipeline prepares all input data for training of the predictive model as well
+as for prediction of the performance of the pokemons for building a team.
+
+### 3.2. `dnn_pipeline`
+
+Once the preprocessing is done, the `dnn_pipeline` trains a deep neural network on the battle
+training data given parameters in `./conf/base/parameters.yml`.
+
+### 3.3. `eval_dnn_pipeline`
+
+With all dnn_models trained, the `eval_dnn_pipeline` evaluates the performance of all models as
+a standard ensemble and a weighted average ensemble (achieved by linear regression) on a holdout set.
+
+### 3.4. `prediction_pipeline`
+
+This pipelines uses the best performing model, which is the weighted ensemble, to predict
+the performance of each available pokemon against the opponent pokemons.
+
+### 3.5. `lp_optimization_pipeline` / `ga_optimization_pipeline`
+
+These two pipelines are responsible for the final submission. Each of the two uses a different
+approach (linear programming or genetic algorithm) to identify the best performing team of
+6 pokemons using the predicitons from the previous given the budget constraint.
+
+## 4. Running Pipelines
+
+Each pipeline can be run individually using the following command in the command line:
+
+```
+kedro run --pipeline {name_of_pipeline}
+```
+
+For sake of convenience, we have included the pretrained DNN model in `./data/99_non_catalogued/`.
+Therefore, to reproduce our results, `dnn_pipeline` and `eval_dnn_pipeline` do not have to be executed.
+
+Hence, consecutively running `preprocessing_pipeline`, `prediction_pipeline` and `lp_optimization_pipeline` or
+`ga_optimization_pipeline` will produce a submission file in `./data/08_reporting/`.
+In our experiments, linear optimization produced the best results.
+
+As an alternative to running the pipelines individually, we have implementation the
+consecutive execution of `preprocessing_pipeline`, `prediction_pipeline` and `lp_optimization_pipeline`
+as the default. Therefore, running the following command in the command line will also produce
+our submission file:
 
 ```
 kedro run
 ```
 
-## Testing Kedro
+## 5. Authors
 
-Have a look at the file `src/tests/test_run.py` for instructions on how to write your tests. You can run your tests with the following command:
-
-```
-kedro test
-```
-
-To configure the coverage threshold, please have a look at the file `.coveragerc`.
-
-
-### Working with Kedro from notebooks
-
-In order to use notebooks in your Kedro project, you need to install Jupyter:
-
-```
-pip install jupyter
-```
-
-For using Jupyter Lab, you need to install it:
-
-```
-pip install jupyterlab
-```
-
-After installing Jupyter, you can start a local notebook server:
-
-```
-kedro jupyter notebook
-```
-
-You can also start Jupyter Lab:
-
-```
-kedro jupyter lab
-```
-
-And if you want to run an IPython session:
-
-```
-kedro ipython
-```
-
-Running Jupyter or IPython this way provides the following variables in
-scope: `proj_dir`, `proj_name`, `conf`, `io`, `parameters` and `startup_error`.
-
-#### Converting notebook cells to nodes in a Kedro project
-
-Once you are happy with a notebook, you may want to move your code over into the Kedro project structure for the next stage in your development. This is done through a mixture of [cell tagging](https://jupyter-notebook.readthedocs.io/en/stable/changelog.html#cell-tags) and Kedro CLI commands.
-
-By adding the `node` tag to a cell and running the command below, the cell's source code will be copied over to a Python file within `src/<package_name>/nodes/`.
-```
-kedro jupyter convert <filepath_to_my_notebook>
-```
-> *Note:* The name of the Python file matches the name of the original notebook.
-
-Alternatively, you may want to transform all your notebooks in one go. To this end, you can run the following command to convert all notebook files found in the project root directory and under any of its sub-folders.
-```
-kedro jupyter convert --all
-```
-
-#### Ignoring notebook output cells in `git`
-
-In order to automatically strip out all output cell contents before committing to `git`, you can run `kedro activate-nbstripout`. This will add a hook in `.git/config` which will run `nbstripout` before anything is committed to `git`.
-
-> *Note:* Your output cells will be left intact locally.
-
-## Package the project
-
-In order to package the project's Python code in `.egg` and / or a `.wheel` file, you can run:
-
-```
-kedro package
-```
-
-After running that, you can find the two packages in `src/dist/`.
-
-## Building API documentation
-
-To build API docs for your code using Sphinx, run:
-
-```
-kedro build-docs
-```
-
-See your documentation by opening `docs/build/html/index.html`.
-
-## Building the project requirements
-
-To generate or update the dependency requirements for your project, run:
-
-```
-kedro build-reqs
-```
-
-This will copy the contents of `src/requirements.txt` into a new file `src/requirements.in` which will be used as the source for `pip-compile`. You can see the output of the resolution by opening `src/requirements.txt`.
-
-After this, if you'd like to update your project requirements, please update `src/requirements.in` and re-run `kedro build-reqs`.
+* Philipp Nikolaus (ETH Zurich) 
+* Daniel Paysan (ETH Zurich)
