@@ -549,7 +549,7 @@ def eval_dnn_models(
         pickle.dump(lm, f)
 
     for dataset in data_loaders_dict.keys():
-        log.info(f"Performance evaluation for training data.")
+        log.info(f"Performance evaluation for {dataset} data.")
         for model_path in model_dict.keys():
             model_name = model_path.split("/")[-1]
             log.info(
