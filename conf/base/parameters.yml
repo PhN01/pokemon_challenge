@@ -50,6 +50,14 @@ dnn_m4:
     - 256
 
 ga_params:
-  runtime: 10
-  num_teams: 150
+  runtime: 3000
+  num_teams: 10
   p_mutation: 0.2
+  warm_start: false
+  warm_start_team:
+    - 1430
+    - 1125
+    - 610
+    - 1090
+    - 208
+    - 1384

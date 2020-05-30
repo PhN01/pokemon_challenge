@@ -117,7 +117,7 @@ def lp_optimization(available_performance: pd.DataFrame, submission_file: pd.Dat
 
 class GeneticAlgorithm(object):
     def __init__(
-        self, data, num_teams, duration=60, opt_metric="result", p_mutation=0.2
+        self, data, num_teams, duration=60, opt_metric="result", p_mutation=0.2, warm_start=False, warm_start_team=None
     ):
         self.data = data
         self.num_teams = num_teams
@@ -127,11 +127,16 @@ class GeneticAlgorithm(object):
         self.all_pokemons = []
         self.opt_metric = opt_metric
         self.p_mutation = p_mutation
+        self.warm_start = warm_start
+        self.warm_start_team = warm_start_team
 
     def run(self):
 
         runtime = time.time() + self.duration
         while time.time() < runtime:
+            if self.warm_start:
+                team = self.check_valid([self.all_pokemons[i] for i in self.warm_start_team])
+                self.top_list.append(team)
             self.generation()
             self.top_list.sort(key=lambda x: x[-1], reverse=True)
             # We use 150 as the number here b/c drafkings only allows a maximum of 150 lineups in any one contest
@@ -234,7 +239,7 @@ class GeneticAlgorithm(object):
             ["caterpie", "golem", "krabby", "mewtwo", "raichu", "venusaur"]
         ):
             result_list.append(team[i][opponent])
-            hppr_list.append(np.maximum(team[i][opponent], 0) / team[i]["hp"])
+            hppr_list.append(np.minimum(np.maximum(team[i][opponent], 0) / team[i]["hp"],1))
             cost_list.append(team[i]["price"])
             names_list.append(team[i]["name"])
         result = np.mean(result_list)
@@ -289,7 +294,9 @@ def ga_optimization(available_performance: pd.DataFrame, submission_file: pd.Dat
         num_teams=ga_params['num_teams'],
         duration=ga_params['runtime'],
         opt_metric="hppr",
-        p_mutation=ga_params['p_mutation']
+        p_mutation=ga_params['p_mutation'],
+        warm_start=ga_params['warm_start'],
+        warm_start_team=ga_params['warm_start_team']
     )
     ga.prepare_data()
     ga.run()
