@@ -73,7 +73,7 @@ the performance of each available pokemon against the opponent pokemons.
 ### 3.5. `lp_optimization_pipeline` / `ga_optimization_pipeline`
 
 These two pipelines are responsible for the final submission. Each of the two uses a different
-approach (linear programming or genetic algorithm) to identify the best performing team of
+approach (linear programming - Mixed Integer programming to be exact- or genetic algorithm) to identify the best performing team of
 6 pokemons using the predicitons from the previous given the budget constraint.
 
 ## 4. Running Pipelines
