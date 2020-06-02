@@ -160,3 +160,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# visual studio code
+.vscode/
